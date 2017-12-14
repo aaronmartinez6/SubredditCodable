@@ -111,12 +111,32 @@ Let's fetch the post's thumbnail each time a post is about to be displayed. That
 1. In the `SearchPostsTableViewController` go to the `cellForRowAt` dataSource method.
 2. After getting the post out of the array, call the `fetchThumbnail()` function, passing in the `post.thumbnailEndpoint`.
 3. In the completion handler you'll either have an image or nil passed in as an argument. Set the cell's post property to the post we want to display. This will update the cell to show the post's properties (except for the thumbnail).
-4. Next, we'll set the cell's image property to the returned image optional.
+4. Next, we'll set the cell's image property to the returned image optional. ***Remember that `fetchThumbnail()` performed an asyncronous network call on a background thread. Make sure to update the UI on the `Main` thread.***
 5. Run your project and see how it looks. Scroll quickly and see if the cell's load smoothly.
 
-> If your internet connection is fast you might not see the problem. Also, our thumbnail images are a small amount of data so that will hide this issue as well. If you have `Network Link Conditioner` installed, you can slow your internet speed and see how the tableview works. 
+> If your internet connection is fast you might not see the problem we need to solve. Also, our thumbnail images are a small amount of data so that will hide this issue as well. If you have `Network Link Conditioner` installed, you can slow your internet speed and see how the tableview works. The problem lies in the way the tableview works. In order to save on resources and memory, UITableView dequeues and reuses the same cells over and over again. Even if a tableview is told it needs to display 10,000 rows, it will still only use a few more cells than what you see on the screen at any given time. Because of the asyncronous network call, the image in the cell might get set a few seconds later than when the cell appears. What if it gets set after the cell had appeared and had already been swiped off the screen? When the cell gets 'reused' it will show the old post's image for a brief time until the new post's fetched image is returned and set. In short, you'll see pictures randomly changing on cells as you scroll and/or stop scrolling. The following is a way to stop it from setting the image that is "too late to the party" from showing up in the cell at all:
 
-***Remember that `fetchThumbnail()` performed an asyncronous network call on a background thread. Make sure to update the UI on the `Main` thread.***
+<details>
+<span>
+
+```
+PostController.shared.fetchThumbnail(at: post.thumbnailEndpoint) { (image) in
+    DispatchQueue.main.async {
+        cell.post = post
+        if let currentIndexPath = self.tableView?.indexPath(for: cell), currentIndexPath == indexPath {
+            cell.thumbnail = image
+        } else {
+            print("Got image for now-reused cell")
+            return // Cell has been reused
+        }
+    }
+}
+```
+
+</span>
+</details>
+
+Look through this code and try to understand how this solution works. You're app should be fully functioning at this point.
 
 ### Black Diamonds
 
