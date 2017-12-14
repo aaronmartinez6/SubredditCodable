@@ -27,7 +27,7 @@ You will need to pay close attention to the sample JSON in order to structure yo
 3. Inside of the `JSONDictionary` create a struct called `DataDictionary` with the following property: 
     * `let children: [PostDictionary]`
 4. Inside of the `DataDictionary` create a struct called `PostDictionary` with the following:
-    *  `let post = Post`
+    *  `let post: Post`
     * You'll also need a `CodingKeys` enum to use `data` as the key instead of `post`. *Reference the [documentation](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) if you need a refresher on how this is to be done.
 5. Outside of these structs, create a new struct called `Post` with the following properties:
 
@@ -74,15 +74,15 @@ At this point you should be able to pull data for a specific subreddit and decod
 Build a view that allows a user to search posts by subreddit.
 
 1. Add a `UITableViewController` as your root view controller in Main.storyboard and embed it in a `UINavigationController`
-2. Create a `SearchPostsTableViewController` file as a subclass of `UITableViewController` and set the class of your root view controller scene
-3. Implement the `UITableViewDataSource` functions using the `posts` array in the `PostController`.
-4. Add a search bar above the prototype cell.
-5. Set up a custom cell to the display the properties of each post: thumbnail, title, number of upvotes, and number of comments.
-6. Create a `PostTableViewCell` file as a subclass of `UITableViewCell` and set the cell to this type in the storyboard.
+2. Create a `SearchPostsTableViewController` file as a subclass of `UITableViewController` and set the class of your root view controller scene.
+3. Set up a custom cell to the display the properties of each post: thumbnail, title, number of upvotes, and number of comments.
+4. Create a `PostTableViewCell` file as a subclass of `UITableViewCell` and set the cell to this type in the storyboard.
     * Create your outlets for each UI element in the cell.
     * Create an `updateViews()` function.
     * Add an optional post property with a property observer that will call `updateViews()` when the property is set.
     * Add an optional thumbnail property. Include the same property observer and call to `updateViews()` when it is set.
+5. Now, implement the `UITableViewDataSource` functions using the `posts` array in the `PostController`.
+6. Add a search bar above the prototype cell on the storyboard.
 7. Look at the documentation for `UISearchBarDelegate` and find a method to use that will get called when the user taps the search button when typing in the search bar. Adopt this protocol in `SearchPostsTableViewController`, set this controller to be the delegate of the searchbar, and add the delegate method to the class.
 8. This method should be implemented to:
 * Get the searchTerm out of the searchBar.
@@ -109,8 +109,14 @@ Now that we have written the function to fetch images we need to decide where to
 Let's fetch the post's thumbnail each time a post is about to be displayed. That way, if for example, there are hundreds or thousands of items in the tableview we won't need to do a network call unless the post is actually going to be displayed.
 
 1. In the `SearchPostsTableViewController` go to the `cellForRowAt` dataSource method.
-2. After getting the post out of the array, call the `fetchThumbnail(...` function passing in the `post.thumbnailEndpoint`.
-3. In the completion handler you'll either have an image or nil passed in as an argument. 
+2. After getting the post out of the array, call the `fetchThumbnail()` function, passing in the `post.thumbnailEndpoint`.
+3. In the completion handler you'll either have an image or nil passed in as an argument. Set the cell's post property to the post we want to display. This will update the cell to show the post's properties (except for the thumbnail).
+4. Next, we'll set the cell's image property to the returned image optional.
+5. Run your project and see how it looks. Scroll quickly and see if the cell's load smoothly.
+
+> If your internet connection is fast you might not see the problem. Also, our thumbnail images are a small amount of data so that will hide this issue as well. If you have `Network Link Conditioner` installed, you can slow your internet speed and see how the tableview works. 
+
+***Remember that `fetchThumbnail()` performed an asyncronous network call on a background thread. Make sure to update the UI on the `Main` thread.***
 
 ### Black Diamonds
 
