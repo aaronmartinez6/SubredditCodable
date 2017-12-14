@@ -79,6 +79,10 @@ Build a view that allows a user to search posts by subreddit.
 4. Add a search bar above the prototype cell.
 5. Set up a custom cell to the display the properties of each post: thumbnail, title, number of upvotes, and number of comments.
 6. Create a `PostTableViewCell` file as a subclass of `UITableViewCell` and set the cell to this type in the storyboard.
+    * Create your outlets for each UI element in the cell.
+    * Create an `updateViews()` function.
+    * Add an optional post property with a property observer that will call `updateViews()` when the property is set.
+    * Add an optional thumbnail property. Include the same property observer and call to `updateViews()` when it is set.
 7. Look at the documentation for `UISearchBarDelegate` and find a method to use that will get called when the user taps the search button when typing in the search bar. Adopt this protocol in `SearchPostsTableViewController`, set this controller to be the delegate of the searchbar, and add the delegate method to the class.
 8. This method should be implemented to:
 * Get the searchTerm out of the searchBar.
@@ -97,6 +101,16 @@ Notice that the JSON data includes the url to the thumbnail for a post (if it ha
 * Create a `URLSession` dataTask and pass it the url. Just like in the `fetchPosts` function we wrote before, you'll need to check for an error and handle it if present.
 * Check for and unwrap the data. Create a constant `image` by passing in the unwrapped `data` to the initializer on `UIImage` that takes data as an argument. (This initializer is also failable).
 * Call completion whether or not you get an image. Choose whether you'll need to call `completion(image)` or `completion(nil)` in each part of your code where you will return out of this function.
+
+### Displaying Images
+
+Now that we have written the function to fetch images we need to decide where to call it. Because tableviews are so prevalent in apps, we as developers need to be good at making them as efficient as possible. We want you to start to notice things that will help make this happen. We will take a step in that direction for this app but just know it could be made even better.
+
+Let's fetch the post's thumbnail each time a post is about to be displayed. That way, if for example, there are hundreds or thousands of items in the tableview we won't need to do a network call unless the post is actually going to be displayed.
+
+1. In the `SearchPostsTableViewController` go to the `cellForRowAt` dataSource method.
+2. After getting the post out of the array, call the `fetchThumbnail(...` function passing in the `post.thumbnailEndpoint`.
+3. In the completion handler you'll either have an image or nil passed in as an argument. 
 
 ### Black Diamonds
 
